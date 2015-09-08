@@ -4,11 +4,6 @@ set -e
 
 [ "$DEBUG" == "1" ] && set -x && set +e
 
-if [ "${BACKEND_SERVERS}" == "**ChangeMe**" -o -z "${BACKEND_SERVERS}" ]; then
-   echo "*** ERROR: you need to define BACKEND_SERVERS environment variable - Exiting ..."
-   exit 1
-fi
-
 if [ "${BACKEND_PORT}" == "**ChangeMe**" -o -z "${BACKEND_PORT}" ]; then
    echo "*** ERROR: you need to define BACKEND_PORT environment variable - Exiting ..."
    exit 1
@@ -26,6 +21,16 @@ fi
 
 if [ "${HTTP_PORT}" == "**ChangeMe**" -o -z "${HTTP_PORT}" ]; then
    echo "*** ERROR: you need to define HTTP_PORT environment variable - Exiting ..."
+   exit 1
+fi
+
+sleep 5
+BACKEND_SERVERS=`dig +short ${LINK_NAME} | sort`
+export BACKEND_SERVERS=`echo ${BACKEND_SERVERS} | sed "s/ /,/g"`
+if [ -z "${BACKEND_SERVERS}" ]; then
+   echo "*** ERROR: Could not determine which backends are linked to this varnish service."
+   echo "*** Is the link named \"${LINK_NAME}\"? If not, please relink the service"
+   echo "*** Exiting ..."
    exit 1
 fi
 
